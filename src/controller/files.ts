@@ -1,6 +1,7 @@
 
 import fs from 'fs';
 import path from 'path';
+
 export class FileManager {
   public readonly files: Map<string, string[]>
   constructor(filePath: string) {
