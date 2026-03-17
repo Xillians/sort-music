@@ -1,0 +1,25 @@
+{
+  "name": "sort-music",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "start": "tsc && node ./dist/main.js",
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.0",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "node-id3": "^0.2.9",
+    "pino": "^10.3.1",
+    "pino-pretty": "^13.1.3"
+  }
+}
