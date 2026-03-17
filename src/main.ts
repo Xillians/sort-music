@@ -19,7 +19,7 @@ function main(): void {
   const fileList = FileManager.fromDirectory();
   
   const csv = CSVManager.fromFile();
-  logger.info({
+  logger.debug({
     playlist: {
       count: fileList.files.size,
       sample: Array.from(fileList.files.entries()).slice(0, 3)

@@ -20,14 +20,14 @@ export class CSVManager {
   private parseCSV(csvContent: string): TrackMetadata[] {
     const lines = csvContent.split(/\r?\n/).map(l => l.trim()).filter(l => l);
 
-    logger.info({ lines: lines.length }, '🔍 CSV has been read');
+    logger.debug({ lines: lines.length }, '🔍 CSV has been read');
 
     // skip the first line (headers)
     const dataLines = lines.slice(1);
 
     const tracks = dataLines.map(line => this.parseLineToTrack(line));
 
-    logger.info({ trackLength: tracks.length }, '✅ Parsed valid tracks from CSV');
+    logger.debug({ trackLength: tracks.length }, '✅ Parsed valid tracks from CSV');
     return tracks;
   }
   /**
