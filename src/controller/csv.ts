@@ -61,28 +61,6 @@ export class CSVManager {
       notes: notes || ''
     };
   }
-  /**
-   * 
-   * @param track The track to update
-   * @param filePath The file location to update
-   * @returns the name of the album.
-   * 
-   * This checks whether the track's foundry module or album gives any valuable name.
-   * If none are presented, the track's album name should be the folder it belongs in.
-   */
-  public getTrackAlbumName(
-    track: TrackMetadata,
-    filePath: string
-  ): string {
-    if (track.foundryModule && track.foundryModule !== 'None') {
-      return track.foundryModule;
-    }
-
-    if (track.album && track.album !== 'None') {
-      return track.album;
-    }
-    return path.basename(path.dirname(filePath));
-  }
   public static fromFile(filePath?: string): CSVManager {
     const defaultPath = path.join(process.cwd(), 'src', 'soundtracks', 'Music d20 _ Borough Bound Master Spreadsheet - All Tracks.csv');
     const content = fs.readFileSync(filePath ?? defaultPath, 'utf-8');
