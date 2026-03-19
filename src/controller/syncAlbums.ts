@@ -37,19 +37,36 @@ export function syncAlbumTags(input: SyncAlbumInput): SyncAlbumSummary {
     filesSkipped: 0,
   };
 
-  for (const track of input.tracks) {
-    const matches = matchTracks(track, input.fileManager);
+ for (const [normalizedName, filePaths] of input.fileManager.files) {
+    const matches = input.tracks.filter(
+      track => matchTracks(track, input.fileManager).length > 0 &&
+               // IMPORTANT: match by normalized name instead
+               normalizedName === input.fileManager.normaliseName(track.title)
+    );
+
     if (matches.length === 0) {
       summary.tracksUnmatched += 1;
       continue;
     }
 
-    for (const filePath of matches) {
+    if (matches.length > 1) {
+      logger.warn({ normalizedName, matches }, 'Ambiguous match, skipping');
+      summary.filesSkipped += filePaths.length;
+      continue;
+    }
+
+    const track = matches[0];
+
+    if (!track) {
+      summary.filesSkipped += filePaths.length;
+      continue;
+    }
+
+    for (const filePath of filePaths) {
       summary.filesMatched += 1;
 
       if (!supportsFile(filePath)) {
         summary.filesSkipped += 1;
-        logger.debug({ filePath }, 'Skipping non-ID3 file');
         continue;
       }
 
@@ -58,11 +75,11 @@ export function syncAlbumTags(input: SyncAlbumInput): SyncAlbumSummary {
 
       if (!targetAlbum) {
         summary.filesSkipped += 1;
-        logger.warn({ filePath, title: track.title }, 'Skipping because target album is empty');
         continue;
       }
 
       const currentAlbum = readAlbum(filePath);
+
       if (currentAlbum === targetAlbum) {
         summary.filesUnchanged += 1;
         continue;
@@ -70,22 +87,18 @@ export function syncAlbumTags(input: SyncAlbumInput): SyncAlbumSummary {
 
       if (input.dryRun) {
         summary.filesUpdated += 1;
-        logger.info(
-          { filePath, currentAlbum, targetAlbum },
-          'Dry-run: album tag would be updated'
-        );
         continue;
       }
 
       const success = writeAlbum(filePath, targetAlbum);
+
       if (success) {
         summary.filesUpdated += 1;
-        logger.info({ filePath, currentAlbum, targetAlbum }, 'Album tag updated');
       } else {
         summary.filesSkipped += 1;
-        logger.warn({ filePath, targetAlbum }, 'Failed to update album tag');
       }
     }
   }
+
   return summary;
 }
