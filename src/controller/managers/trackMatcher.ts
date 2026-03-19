@@ -1,5 +1,5 @@
 import type { FileManager } from "./files.js";
-import type { TrackMetadata } from "./types.js";
+import type { TrackMetadata } from "../core/types.js";
 
 /**
  * 

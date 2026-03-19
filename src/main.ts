@@ -1,7 +1,7 @@
-import {CSVManager } from './controller/csv.js';
-import { FileManager } from './controller/files.js';
-import { logger} from './controller/config.js';
-import { syncAlbumTags } from './controller/syncAlbums.js';
+import {CSVManager } from './controller/managers/csv.js';
+import { FileManager } from './controller/managers/files.js';
+import { logger} from './controller/core/config.js';
+import { syncAlbumTags } from './controller/api/syncAlbums.js';
 import Fastify from 'fastify';
 
 const fastify = Fastify({

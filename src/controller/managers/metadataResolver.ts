@@ -1,4 +1,4 @@
-import type { TrackMetadata } from "./types.js";
+import type { TrackMetadata } from "../core/types.js";
 import path from 'path';
 
 /**

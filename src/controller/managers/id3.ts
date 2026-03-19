@@ -32,3 +32,6 @@ export function writeGenre(filePath: string, genre: string): boolean {
   const result = NodeID3.update({ genre }, filePath);
   return result === true;
 }
+export function readFileName(filePath: string): string {
+  return path.basename(filePath);
+}
