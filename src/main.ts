@@ -2,31 +2,50 @@ import {CSVManager } from './controller/csv.js';
 import { FileManager } from './controller/files.js';
 import {config, logger} from './controller/config.js';
 import { syncAlbumTags } from './controller/syncAlbums.js';
+import Fastify from 'fastify';
 
-  /**
-   * steps:
-   * 1. get config data.
-   * 2. fetch all files from ./controller/soundtracks/Music d20 Everything Bundle/Themes/Playlists
-   * 3. Read csv from ./controller/soundtracks
-   * 4. Process meta tags like genre name, album, and tags
-   * 5. For all songs with album name "None", read the name of the playlist directory the song exists under and apply that as the album name
-   */
-function main(): void {
-  if (config.isDryrun()) {
-    logger.info('Running dry run');
-  } 
-  logger.info("running main");
+const fastify = Fastify({
+});
 
-  const fileList = FileManager.fromDirectory();
-  const csv = CSVManager.fromFile();
+fastify.get('/health', async (request, reply) => {
+  return { status: 'ok' };
+});
 
-  const summary = syncAlbumTags({
-    tracks: csv.tracks,
-    fileManager: fileList,
-    dryRun: config.isDryrun(),
-  });
+fastify.get("/sync-albums", async (request, reply) => {
+  try {
+    logger.info('Received request to sync albums');
+    
+    const fileList = FileManager.fromDirectory();
+    const csv = CSVManager.fromFile();
+    logger.debug({ 
+      fileCount: Array.from(fileList.files).length, 
+      trackCount: csv.tracks.length 
+    }, 'Fetched files and CSV data');
 
-  logger.info({ summary }, 'Album sync run complete');
-}
+    const summary = syncAlbumTags({
+      tracks: csv.tracks,
+      fileManager: fileList,
+      dryRun: config.isDryrun(),
+    });
 
-main();
+    logger.info({ summary }, 'Album sync run complete');
+    reply.send({ summary });
+
+  } catch (err) {
+    logger.error({ err }, 'Error syncing albums');
+    reply.status(500).send({ error: 'Error syncing albums' });
+    return;
+  }
+});
+
+const start = async () => {
+  try {
+    logger.info('Starting server');
+    await fastify.listen({ port: 3000 });
+  }
+  catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+};
+start();
