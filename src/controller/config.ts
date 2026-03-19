@@ -10,10 +10,6 @@ import { Environment } from './types.js';
 class Config {
   private environment: Environment;
   /**
-   * Applied if you use --dry-run argument
-   */
-  private dryRun: boolean;
-  /**
    * A pino logger for structured logging. In non-production, uses pino pretty for prettier logs in console.
    */
   public readonly logger: Logger;
@@ -25,7 +21,6 @@ class Config {
   this.environment = (env.NODE_ENV?.toLowerCase() as Environment) ?? 'development';
   this.logLevel = (env.LOG_LEVEL?.toLowerCase() as Level) ?? 'info';
   
-  this.dryRun = process.argv.includes('--dry-run');
   this.logger = this.makeLogger();
   }
   public isProduction() {
@@ -33,9 +28,6 @@ class Config {
   }
   public isDev() {
     return this.environment == Environment.Development;
-  }
-  public isDryrun() {
-    return this.dryRun;
   }
   private makeLogger(): Logger {
     const options: LoggerOptions = {
