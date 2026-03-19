@@ -11,8 +11,13 @@ fastify.get('/health', async (request, reply) => {
   return { status: 'ok' };
 });
 
-fastify.get("/sync-albums", async (request, reply) => {
+interface Queryparams {
+  dryRun?: boolean;
+}
+
+fastify.post("/sync-albums", async (request, reply) => {
   try {
+    const { dryRun } = request.query as Queryparams;
     logger.info('Received request to sync albums');
     
     const fileList = FileManager.fromDirectory();
@@ -25,7 +30,7 @@ fastify.get("/sync-albums", async (request, reply) => {
     const summary = syncAlbumTags({
       tracks: csv.tracks,
       fileManager: fileList,
-      dryRun: config.isDryrun(),
+      dryRun: dryRun ?? false
     });
 
     logger.info({ summary }, 'Album sync run complete');
