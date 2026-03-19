@@ -20,6 +20,13 @@ export interface SyncAlbumSummary {
   filesSkipped: number;
 }
 
+/**
+ * 
+ * @param tracks - The list of track metadata objects parsed from the CSV file.
+ * @param fileManager - An instance of FileManager that provides access to the files in the target directory.
+ * @param dryRun - A boolean flag indicating whether to perform a dry run (true) or actually write changes to the files (false).
+ * @returns A summary object containing counts of tracks read, unmatched tracks, files matched, updated, unchanged, and skipped.
+ */
 export function syncAlbumTags(input: SyncAlbumInput): SyncAlbumSummary {
   const summary: SyncAlbumSummary = {
     tracksRead: input.tracks.length,
