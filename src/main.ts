@@ -1,6 +1,7 @@
 import {CSVManager } from './controller/csv.js';
 import { FileManager } from './controller/files.js';
 import {config, logger} from './controller/config.js';
+import { syncAlbumTags } from './controller/syncAlbums.js';
 
   /**
    * steps:
@@ -17,18 +18,15 @@ function main(): void {
   logger.info("running main");
 
   const fileList = FileManager.fromDirectory();
-  
   const csv = CSVManager.fromFile();
-  logger.debug({
-    playlist: {
-      count: fileList.files.size,
-      sample: Array.from(fileList.files.entries()).slice(0, 3)
-    },
-    csv: {
-      count: csv.tracks.length,
-      sample: csv.tracks.slice(0,3)
-    }
-  }, "data fetched");
+
+  const summary = syncAlbumTags({
+    tracks: csv.tracks,
+    fileManager: fileList,
+    dryRun: config.isDryrun(),
+  });
+
+  logger.info({ summary }, 'Album sync run complete');
 }
 
 main();
