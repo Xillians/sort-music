@@ -1,9 +1,9 @@
-import { logger } from './config.js';
-import type { FileManager } from './files.js';
-import { readAlbum, supportsFile, writeAlbum } from './id3.js';
-import { createMetadataObject } from './metadataResolver.js';
-import { matchTracks } from './trackMatcher.js';
-import type { TrackMetadata } from './types.js';
+import { logger } from '../core/config.js';
+import type { FileManager } from '../managers/files.js';
+import { readAlbum, supportsFile, writeAlbum } from '../managers/id3.js';
+import { createMetadataObject } from '../managers/metadataResolver.js';
+import { matchTracks } from '../managers/trackMatcher.js';
+import type { TrackMetadata } from '../core/types.js';
 
 export interface SyncAlbumInput {
   tracks: TrackMetadata[];

@@ -1,7 +1,7 @@
 import fs from 'fs';
-import type { TrackMetadata } from './types.js';
+import type { TrackMetadata } from '../core/types.js';
 import path from 'path';
-import { logger } from './config.js';
+import { logger } from '../core/config.js';
 
 export class CSVManager {
   public readonly tracks: TrackMetadata[];
