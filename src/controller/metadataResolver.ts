@@ -1,4 +1,3 @@
-import { KeyObject } from "crypto";
 import type { TrackMetadata } from "./types.js";
 import path from 'path';
 
