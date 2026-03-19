@@ -9,7 +9,7 @@ export class FileManager {
     const trackList = this.getAllFiles(filePath)
 
     trackList.forEach(track => {
-      const normalisedName = this.normaliseName(track);
+      const normalisedName = this.normaliseName(path.basename(track));
       if (this.files.has(normalisedName)) {
         this.files.get(normalisedName)?.push(track)
       } else {
