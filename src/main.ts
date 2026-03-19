@@ -1,6 +1,6 @@
 import {CSVManager } from './controller/csv.js';
 import { FileManager } from './controller/files.js';
-import {config, logger} from './controller/config.js';
+import { logger} from './controller/config.js';
 import { syncAlbumTags } from './controller/syncAlbums.js';
 import Fastify from 'fastify';
 
@@ -19,7 +19,7 @@ fastify.post("/sync-albums", async (request, reply) => {
   try {
     const { dryRun } = request.query as Queryparams;
     logger.info('Received request to sync albums');
-    
+  
     const fileList = FileManager.fromDirectory();
     const csv = CSVManager.fromFile();
     logger.debug({ 
@@ -39,6 +39,28 @@ fastify.post("/sync-albums", async (request, reply) => {
   } catch (err) {
     logger.error({ err }, 'Error syncing albums');
     reply.status(500).send({ error: 'Error syncing albums' });
+    return;
+  }
+});
+fastify.post("/set-titles", async (request, reply) => {
+  try {
+    logger.info('Received request to set titles');
+    reply.status(501).send({ error: 'Title setting not implemented yet' });
+    return;
+  } catch (err) {
+    logger.error({ err }, 'Error setting titles');
+    reply.status(500).send({ error: 'Error setting titles' });
+    return;
+  }
+});
+fastify.post("/sync-plex-tags", async (request, reply) => {
+  try {
+    logger.info('Received request to sync Plex tags');
+    reply.status(501).send({ error: 'Plex tag syncing not implemented yet' });
+    return;
+  } catch (err) {
+    logger.error({ err }, 'Error syncing Plex tags');
+    reply.status(500).send({ error: 'Error syncing Plex tags' });
     return;
   }
 });
