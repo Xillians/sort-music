@@ -4,7 +4,6 @@ import { FileManager } from '../../managers/files.js';
 import { syncAlbumTags } from './service.js';
 import type { SyncAlbumSummary } from './types.js';
 
-
 export function syncAlbumHandler(dryRun: boolean): SyncAlbumSummary {
   logger.info('Received request to sync albums');
 
