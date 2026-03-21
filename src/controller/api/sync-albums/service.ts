@@ -1,24 +1,11 @@
-import { logger } from '../core/config.js';
-import type { FileManager } from '../managers/files.js';
-import { readAlbum, supportsFile, writeAlbum } from '../managers/id3.js';
-import { createMetadataObject } from '../managers/metadataResolver.js';
-import { matchTracks } from '../managers/trackMatcher.js';
-import type { TrackMetadata } from '../core/types.js';
+import { logger } from '../../core/config.js';
+import type { FileManager } from '../../managers/files.js';
+import { readAlbum, supportsFile, writeAlbum } from '../../managers/id3.js';
+import { createMetadataObject } from '../../managers/metadataResolver.js';
+import { matchTracks } from '../../managers/trackMatcher.js';
+import type { TrackMetadata } from '../../core/types.js';
+import type { SyncAlbumInput, SyncAlbumSummary } from './types.js';
 
-export interface SyncAlbumInput {
-  tracks: TrackMetadata[];
-  fileManager: FileManager;
-  dryRun: boolean;
-}
-
-export interface SyncAlbumSummary {
-  tracksRead: number;
-  tracksUnmatched: number;
-  filesMatched: number;
-  filesUpdated: number;
-  filesUnchanged: number;
-  filesSkipped: number;
-}
 
 /**
  * 

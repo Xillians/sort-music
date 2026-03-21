@@ -1,8 +1,6 @@
-import {CSVManager } from './controller/managers/csv.js';
-import { FileManager } from './controller/managers/files.js';
-import { logger} from './controller/core/config.js';
-import { syncAlbumTags } from './controller/api/syncAlbums.js';
+import { logger } from './controller/core/config.js';
 import Fastify from 'fastify';
+import { syncAlbumHandler } from './controller/api/sync-albums/orchestrator.js';
 
 const fastify = Fastify({
 });
@@ -12,36 +10,20 @@ fastify.get('/health', async (request, reply) => {
 });
 
 interface Queryparams {
-  dryRun?: boolean;
+  dryRun?: string;
 }
-
 fastify.post("/sync-albums", async (request, reply) => {
   try {
     const { dryRun } = request.query as Queryparams;
-    logger.info('Received request to sync albums');
-  
-    const fileList = FileManager.fromDirectory();
-    const csv = CSVManager.fromFile();
-    logger.debug({ 
-      fileCount: Array.from(fileList.files).length, 
-      trackCount: csv.tracks.length 
-    }, 'Fetched files and CSV data');
-
-    const summary = syncAlbumTags({
-      tracks: csv.tracks,
-      fileManager: fileList,
-      dryRun: dryRun ?? false
-    });
-
-    logger.info({ summary }, 'Album sync run complete');
+    const summary = syncAlbumHandler(dryRun === 'true');
     reply.send({ summary });
-
   } catch (err) {
     logger.error({ err }, 'Error syncing albums');
     reply.status(500).send({ error: 'Error syncing albums' });
     return;
   }
 });
+
 fastify.post("/set-titles", async (request, reply) => {
   try {
     logger.info('Received request to set titles');
@@ -53,6 +35,7 @@ fastify.post("/set-titles", async (request, reply) => {
     return;
   }
 });
+
 fastify.post("/sync-plex-tags", async (request, reply) => {
   try {
     logger.info('Received request to sync Plex tags');
