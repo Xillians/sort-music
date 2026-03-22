@@ -8,10 +8,10 @@ import type { SyncAlbumInput, SyncAlbumSummary } from './types.js';
 
 
 /**
- * 
+ * Synchronizes album tags for a list of tracks with the corresponding files in the target directory.
  * @param tracks - The list of track metadata objects parsed from the CSV file.
  * @param fileManager - An instance of FileManager that provides access to the files in the target directory.
- * @param dryRun - A boolean flag indicating whether to perform a dry run (true) or actually write changes to the files (false).
+ * @param commit - A boolean flag indicating whether to actually write changes to the files (true) or perform a dry run (false).
  * @returns A summary object containing counts of tracks read, unmatched tracks, files matched, updated, unchanged, and skipped.
  */
 export function syncAlbumTags(input: SyncAlbumInput): SyncAlbumSummary {
@@ -72,7 +72,7 @@ export function syncAlbumTags(input: SyncAlbumInput): SyncAlbumSummary {
         continue;
       }
 
-      if (input.dryRun) {
+      if (!input.commit) {
         summary.filesUpdated += 1;
         continue;
       }

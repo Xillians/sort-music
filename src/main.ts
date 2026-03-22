@@ -10,12 +10,13 @@ fastify.get('/health', async (request, reply) => {
 });
 
 interface Queryparams {
-  dryRun?: string;
+  commit?: string;
 }
 fastify.post("/sync-albums", async (request, reply) => {
   try {
-    const { dryRun } = request.query as Queryparams;
-    const summary = syncAlbumHandler(dryRun === 'true');
+    const { commit } = request.query as Queryparams;
+    commit === 'true' ? logger.info('Committing sync') : logger.info('Performing dry run album sync');
+    const summary = syncAlbumHandler(commit === 'true');
     reply.send({ summary });
   } catch (err) {
     logger.error({ err }, 'Error syncing albums');

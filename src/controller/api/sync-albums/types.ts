@@ -4,7 +4,7 @@ import type { FileManager } from "../../managers/files.js";
 export interface SyncAlbumInput {
   tracks: TrackMetadata[];
   fileManager: FileManager;
-  dryRun: boolean;
+  commit: boolean;
 }
 
 export interface SyncAlbumSummary {
