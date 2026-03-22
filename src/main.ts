@@ -15,8 +15,10 @@ interface Queryparams {
 fastify.post("/sync-albums", async (request, reply) => {
   try {
     const { commit } = request.query as Queryparams;
-    commit === 'true' ? logger.info('Committing sync') : logger.info('Performing dry run album sync');
+    logger.info( commit === 'true' ? 'Committing changes' : 'Performing dry run');
+
     const summary = syncAlbumHandler(commit === 'true');
+
     reply.send({ summary });
   } catch (err) {
     logger.error({ err }, 'Error syncing albums');
@@ -27,7 +29,7 @@ fastify.post("/sync-albums", async (request, reply) => {
 
 fastify.post("/set-titles", async (request, reply) => {
   try {
-    logger.info('Received request to set titles');
+    logger.info('Received request to update titles');
     reply.status(501).send({ error: 'Title setting not implemented yet' });
     return;
   } catch (err) {
