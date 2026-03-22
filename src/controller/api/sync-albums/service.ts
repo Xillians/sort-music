@@ -24,11 +24,11 @@ export function syncAlbumTags(input: SyncAlbumInput): SyncAlbumSummary {
     filesSkipped: 0,
   };
 
- for (const [normalizedName, filePaths] of input.fileManager.files) {
+  for (const [normalizedName, filePaths] of input.fileManager.files) {
     const matches = input.tracks.filter(
       track => matchTracks(track, input.fileManager).length > 0 &&
-               // IMPORTANT: match by normalized name instead
-               normalizedName === input.fileManager.normaliseName(track.title)
+        // IMPORTANT: match by normalized name instead
+        normalizedName === input.fileManager.normaliseName(track.title)
     );
 
     if (matches.length === 0) {
