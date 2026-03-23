@@ -1,6 +1,7 @@
 import { logger } from './controller/core/config.js';
 import Fastify from 'fastify';
 import { syncAlbumHandler } from './controller/api/sync-albums/orchestrator.js';
+import { setTitlesHandler } from './controller/api/set-titles/orchestrator.js';
 
 const fastify = Fastify({
 });
@@ -29,9 +30,11 @@ fastify.post("/sync-albums", async (request, reply) => {
 
 fastify.post("/set-titles", async (request, reply) => {
   try {
-    logger.info('Received request to update titles');
-    reply.status(501).send({ error: 'Title setting not implemented yet' });
-    return;
+    const { commit } = request.query as Queryparams;
+    logger.info( commit === 'true' ? 'Committing title changes' : 'Performing dry run for title changes');
+
+    const summary = setTitlesHandler(commit === 'true');
+    reply.send({ summary });
   } catch (err) {
     logger.error({ err }, 'Error setting titles');
     reply.status(500).send({ error: 'Error setting titles' });
