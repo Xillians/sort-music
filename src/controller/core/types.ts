@@ -1,7 +1,7 @@
 export interface TrackMetadata {
   title: string;
   releaseDate: string;
-  variant: boolean;
+  variant: string;
   tier: string;
   album: string;
   foundryModule: string;

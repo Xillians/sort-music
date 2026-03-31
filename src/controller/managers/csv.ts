@@ -4,7 +4,7 @@ import path from 'path';
 import { logger } from '../core/config.js';
 
 export class CSVManager {
-  public readonly tracks: TrackMetadata[];
+  public readonly tracks: Map<string, TrackMetadata[]>;
   constructor(csvFilePath: string) {
     this.tracks = this.parseCSV(csvFilePath);
   }
@@ -15,9 +15,9 @@ export class CSVManager {
    * 
    * For each line in the csv file, use the parseCSVline.
    * @param csvContent the raw data from the CSV file. 
-   * @returns the structured array of data from the CSV file
+   * @returns tracks keyed by normalized base title. Variants share the same key.
    */
-  private parseCSV(csvContent: string): TrackMetadata[] {
+  private parseCSV(csvContent: string): Map<string, TrackMetadata[]> {
     const lines = csvContent.split(/\r?\n/).map(l => l.trim()).filter(l => l);
 
     logger.debug({ lines: lines.length }, '🔍 CSV has been read');
@@ -25,9 +25,20 @@ export class CSVManager {
     // skip the first line (headers)
     const dataLines = lines.slice(1);
 
-    const tracks = dataLines.map(line => this.parseLineToTrack(line));
+    const trackList = dataLines.map(line => this.parseLineToTrack(line));
+    const tracks = new Map<string, TrackMetadata[]>();
 
-    logger.debug({ trackLength: tracks.length }, '✅ Parsed valid tracks from CSV');
+    for (const track of trackList) {
+      const key = this.normaliseBaseTitle(track.title);
+      const existing = tracks.get(key) ?? [];
+      existing.push(track);
+      tracks.set(key, existing);
+    }
+
+    logger.debug({
+      totalTracks: trackList.length,
+      mapKeys: tracks.size,
+    }, '✅ Parsed valid tracks from CSV');
     return tracks;
   }
   /**
@@ -52,7 +63,8 @@ export class CSVManager {
     return {
       title: title || '',
       releaseDate: releaseDate || '',
-      variant: variant?.toLowerCase() === 'yes',
+      // if variant is yes, treat as "baseline", otherwise, find the variant name from within paranthesis in the title, e.g. "Track Title (Variant Name)" -> variant: "Variant Name"
+      variant: variant.toLowerCase() === 'yes' ? 'baseline' : (title.match(/\(([^)]+)\)/)?.[1] || '').trim(),
       tier: tier || '',
       album: album || '',
       foundryModule: foundryModule || '',
@@ -65,5 +77,13 @@ export class CSVManager {
     const defaultPath = path.join(process.cwd(), 'src', 'soundtracks', 'Music d20 _ Borough Bound Master Spreadsheet - All Tracks.csv');
     const content = fs.readFileSync(filePath ?? defaultPath, 'utf-8');
     return new CSVManager(content);
+  }
+
+  private normaliseBaseTitle(title: string): string {
+    return title
+      .replace(/\s*\(.*?\)/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
   }
 }

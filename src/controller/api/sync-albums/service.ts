@@ -1,9 +1,7 @@
 import { logger } from '../../core/config.js';
-import type { FileManager } from '../../managers/files.js';
+import { TrackMetadata } from '../../core/types.js';
 import { readAlbum, supportsFile, writeAlbum } from '../../managers/id3.js';
 import { createMetadataObject } from '../../managers/metadataResolver.js';
-import { matchTracks } from '../../managers/trackMatcher.js';
-import type { TrackMetadata } from '../../core/types.js';
 import type { SyncAlbumInput, SyncAlbumSummary } from './types.js';
 
 
@@ -16,7 +14,6 @@ import type { SyncAlbumInput, SyncAlbumSummary } from './types.js';
  */
 export function syncAlbumTags(input: SyncAlbumInput): SyncAlbumSummary {
   const summary: SyncAlbumSummary = {
-    tracksRead: input.tracks.length,
     tracksUnmatched: 0,
     filesMatched: 0,
     filesUpdated: 0,
@@ -24,32 +21,25 @@ export function syncAlbumTags(input: SyncAlbumInput): SyncAlbumSummary {
     filesSkipped: 0,
   };
 
-  for (const [normalizedName, filePaths] of input.fileManager.files) {
-    const matches = input.tracks.filter(
-      track => matchTracks(track, input.fileManager).length > 0 &&
-        // IMPORTANT: match by normalized name instead
-        normalizedName === input.fileManager.normaliseName(track.title)
-    );
-
-    if (matches.length === 0) {
-      summary.tracksUnmatched += 1;
+  for (const [normalizedName, tracks] of input.fileManager.tracks) {
+    const candidates = input.tracks.get(normalizedName) ?? [];
+    if (candidates.length === 0) {
+      summary.tracksUnmatched += tracks.length;
+      summary.filesSkipped += tracks.length;
       continue;
     }
 
-    if (matches.length > 1) {
-      logger.warn({ normalizedName, matches }, 'Ambiguous match, skipping');
-      summary.filesSkipped += filePaths.length;
-      continue;
-    }
+    for (const fileTrack of tracks) {
+      const filePath = fileTrack.filePath;
+      const track = selectTrackForVariant(candidates, fileTrack.variant);
 
-    const track = matches[0];
+      if (!track) {
+        logger.warn({ normalizedName, filePath, variant: fileTrack.variant }, 'No CSV track match for file variant');
+        summary.tracksUnmatched += 1;
+        summary.filesSkipped += 1;
+        continue;
+      }
 
-    if (!track) {
-      summary.filesSkipped += filePaths.length;
-      continue;
-    }
-
-    for (const filePath of filePaths) {
       summary.filesMatched += 1;
 
       if (!supportsFile(filePath)) {
@@ -88,4 +78,28 @@ export function syncAlbumTags(input: SyncAlbumInput): SyncAlbumSummary {
   }
 
   return summary;
+}
+
+function selectTrackForVariant(candidates: TrackMetadata[], fileVariant: string): TrackMetadata | undefined {
+  const normalizedFileVariant = normaliseVariant(fileVariant);
+
+  const exact = candidates.find((candidate) => normaliseVariant(candidate.variant) === normalizedFileVariant);
+  if (exact) {
+    return exact;
+  }
+
+  const baseline = candidates.find((candidate) => normaliseVariant(candidate.variant) === 'baseline');
+  if (baseline) {
+    return baseline;
+  }
+
+  return candidates[0];
+}
+
+function normaliseVariant(value: string): string {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized || normalized === 'looping' || normalized === 'extended cut') {
+    return 'baseline';
+  }
+  return normalized;
 }

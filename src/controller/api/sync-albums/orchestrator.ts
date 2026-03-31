@@ -10,8 +10,7 @@ export function syncAlbumHandler(commit: boolean): SyncAlbumSummary {
   const fileList = FileManager.fromDirectory();
   const csv = CSVManager.fromFile();
   logger.debug({
-    fileCount: Array.from(fileList.files).length,
-    trackCount: csv.tracks.length
+    fileCount: Array.from(fileList.tracks).length,
   }, 'Fetched files and CSV data');
 
   return syncAlbumTags({
