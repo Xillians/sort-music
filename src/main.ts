@@ -3,6 +3,7 @@ import Fastify from 'fastify';
 import { syncAlbumHandler } from './controller/api/sync-albums/orchestrator.js';
 import { setTitlesHandler } from './controller/api/set-titles/orchestrator.js';
 import { syncPlexTagsHandler } from './controller/api/sync-plex-tags/orchestrator.js';
+import { setGenresHandler } from './controller/api/set-genres/orchestrator.js';
 
 const fastify = Fastify({
 });
@@ -39,6 +40,19 @@ fastify.post("/set-titles", async (request, reply) => {
   } catch (err) {
     logger.error({ err }, 'Error setting titles');
     reply.status(500).send({ error: 'Error setting titles' });
+    return;
+  }
+});
+fastify.post("/set-genres", async (request, reply) => {
+  try {
+    const { commit } = request.query as Queryparams;
+    logger.info( commit === 'true' ? 'Committing genre changes' : 'Performing dry run for genre changes');
+
+    const summary = setGenresHandler(commit === 'true');
+    reply.send({ summary });
+  }  catch (err) {
+    logger.error({ err }, 'Error setting genres');
+    reply.status(500).send({ error: 'Error setting genres' });
     return;
   }
 });
