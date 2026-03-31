@@ -3,6 +3,9 @@ import { logger } from "../../core/config.js";
 import { FileManager } from "../../managers/files.js";
 import { SetGenresSummary } from "./types.js";
 import { CSVManager } from "../../managers/csv.js";
+import { TrackMetadata } from "../../core/types.js";
+
+const GENRE_SEPARATOR = '; ';
 
 export function setGenres(commit: boolean, fileList: FileManager, csv: CSVManager): SetGenresSummary {
   const summary: SetGenresSummary = {
@@ -11,26 +14,23 @@ export function setGenres(commit: boolean, fileList: FileManager, csv: CSVManage
     unchangedFiles: 0,
     failed: 0,
   };
-  for (const [normalisedName, files] of fileList.files) {
-    if (files.length === 0) {
+  for (const [normalisedName, tracks] of fileList.tracks) {
+    if (tracks.length === 0) {
       continue;
     }
 
-    summary.totalFiles += files.length;
+    summary.totalFiles += tracks.length;
 
-    for (const file of files) {
-      logger.debug({ normalisedName, file }, 'Processing file for genre update');
-      for (const track of csv.tracks) {
-        logger.debug({ trackTitle: track.title }, 'Checking against CSV track');
-      }
-      const csvTrack = csv.tracks.find(track => track.title === normalisedName);
+    for (const fileTrack of tracks) {
+      const filePath = fileTrack.filePath;
+      const csvTrack = selectTrackForVariant(csv.tracks.get(normalisedName) ?? [], fileTrack.variant);
       if (!csvTrack) {
-        logger.warn({ file }, 'No matching track found in CSV, skipping file');
-        summary.unchangedFiles += 1;
+        logger.warn({ normalisedName, filePath, variant: fileTrack.variant }, 'No CSV track match for file variant');
+        summary.failed += 1;
         continue;
       }
 
-      const ok = updateFileGenre(file, csvTrack.tags, commit);
+      const ok = updateFileGenre(filePath, csvTrack.tags, commit);
       if (ok === 'unchanged') {
         summary.unchangedFiles += 1;
       } else if (ok === 'failed') {
@@ -43,18 +43,6 @@ export function setGenres(commit: boolean, fileList: FileManager, csv: CSVManage
   }
   return summary;
 } 
-/**
- * 
- * Updates the genre tags of a music file. It uses the id3 
- * genre string to determine the genres to set. If the genre string is empty, it will skip updating the file.
- * 
- * The file will be updated using the array of genres and joining them with a null character, which is 
- * one of standard ways to separate multiple genres in ID3 tags.
- * 
- * @param file the filepath to update
- * @returns state whether file updated OK or if something failed.
- * 
- */
 function updateFileGenre(file: string, genres: string[], commit: boolean = false): 'updated' | 'unchanged' | 'failed' {
   try {
     if (genres.length === 0) {
@@ -63,7 +51,7 @@ function updateFileGenre(file: string, genres: string[], commit: boolean = false
     }
     logger.debug({ file, genres }, 'Found genres to update');
     if (commit) {
-      const success = NodeID3.update({ genre: genres.join('/') }, file);
+      const success = NodeID3.update({ genre: genres.join(GENRE_SEPARATOR ) }, file);
       if (!success) {
         logger.error({ file }, 'Failed to update genres in ID3 tags');
         return 'failed';
@@ -77,4 +65,28 @@ function updateFileGenre(file: string, genres: string[], commit: boolean = false
     return 'failed';
   }
   return 'updated';
+}
+
+function selectTrackForVariant(candidates: TrackMetadata[], fileVariant: string): TrackMetadata | undefined {
+  const normalizedFileVariant = normaliseVariant(fileVariant);
+
+  const exact = candidates.find((candidate) => normaliseVariant(candidate.variant) === normalizedFileVariant);
+  if (exact) {
+    return exact;
+  }
+
+  const baseline = candidates.find((candidate) => normaliseVariant(candidate.variant) === 'baseline');
+  if (baseline) {
+    return baseline;
+  }
+
+  return candidates[0];
+}
+
+function normaliseVariant(value: string): string {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized || normalized === 'looping' || normalized === 'extended cut') {
+    return 'baseline';
+  }
+  return normalized;
 }
