@@ -18,6 +18,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "fast-xml-parser": "^5.5.8",
     "fastify": "^5.8.2",
     "node-id3": "^0.2.9",
     "pino": "^10.3.1",

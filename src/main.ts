@@ -47,8 +47,8 @@ fastify.post("/sync-plex-tags", async (request, reply) => {
   try {
     const { commit } = request.query as Queryparams;
     logger.info( commit === 'true' ? 'Committing Plex tag changes' : 'Performing dry run for Plex tag changes');
+
     const summary = await syncPlexTagsHandler(commit === 'true');
-    logger.info({ summary }, 'Plex tag sync summary');
     reply.send({ summary });
   } catch (err) {
     logger.error({ err }, 'Error syncing Plex tags');

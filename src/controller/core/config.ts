@@ -2,6 +2,7 @@ import pino, { type Level, type Logger, type LoggerOptions } from 'pino';
 import PinoPretty, { type PrettyStream } from 'pino-pretty';
 import process from 'process';
 import { Environment } from './types.js';
+import { PlexManager } from '../managers/plex.js';
 
 /**
  * The app config. Fetches environment with fallbacks and runs 
@@ -9,6 +10,7 @@ import { Environment } from './types.js';
  */
 class Config {
   private environment: Environment;
+  public readonly plex: PlexManager;
   /**
    * A pino logger for structured logging. In non-production, uses pino pretty for prettier logs in console.
    */
@@ -22,6 +24,7 @@ class Config {
   this.logLevel = (env.LOG_LEVEL?.toLowerCase() as Level) ?? 'info';
   
   this.logger = this.makeLogger();
+  this.plex = new PlexManager(env.PLEX_URL ?? '', env.PLEX_TOKEN ?? '');
   }
   public isProduction() {
     return this.environment == Environment.Production;
@@ -47,5 +50,6 @@ class Config {
     return pino(options, stream);
   }
 }
-export const config = new Config;
+export const config = new Config();
 export const logger = config.logger;
+export const plex = config.plex;
